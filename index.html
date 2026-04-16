@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Лендинг — Чат-бот для бизнеса</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF7F2;
+    --bg-card: #FFFFFF;
+    --text: #1A1A1A;
+    --text-muted: #6B6560;
+    --accent: #0084FF;
+    --accent-hover: #006ADB;
+    --accent-light: #E8F2FF;
+    --warm: #FF6B35;
+    --warm-light: #FFF3ED;
+    --border: #E8E2DA;
+    --shadow: 0 2px 20px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 40px rgba(0,0,0,0.1);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(250, 247, 242, 0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+  .nav-inner {
+    max-width: 1120px; margin: auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800; font-size: 22px;
+    background: linear-gradient(135deg, var(--accent), var(--warm));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav-cta {
+    background: var(--accent); color: #fff;
+    padding: 10px 22px; border-radius: 50px;
+    text-decoration: none; font-weight: 600; font-size: 14px;
+    transition: all .25s;
+  }
+  .nav-cta:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 1120px; margin: auto;
+    padding: 140px 24px 80px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+    align-items: center;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800; line-height: 1.15;
+    margin-bottom: 20px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent), #6C5CE7);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 18px; color: var(--text-muted);
+    margin-bottom: 32px; max-width: 460px;
+  }
+  .hero-buttons { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn-messenger {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--accent); color: #fff;
+    padding: 16px 32px; border-radius: 50px;
+    text-decoration: none; font-weight: 700; font-size: 16px;
+    transition: all .3s; box-shadow: 0 4px 20px rgba(0,132,255,0.3);
+  }
+  .btn-messenger:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(0,132,255,0.4);
+  }
+  .btn-messenger svg { width: 22px; height: 22px; }
+  .btn-scroll {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: 2px solid var(--border);
+    color: var(--text); padding: 14px 28px; border-radius: 50px;
+    text-decoration: none; font-weight: 600; font-size: 16px;
+    transition: all .3s; cursor: pointer;
+  }
+  .btn-scroll:hover { border-color: var(--text); }
+
+  /* Hero visual — chat mockup */
+  .hero-visual {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+  }
+  .chat-header {
+    display: flex; align-items: center; gap: 12px;
+    padding-bottom: 20px; border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .chat-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #6C5CE7);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 18px;
+  }
+  .chat-name { font-weight: 700; font-size: 15px; }
+  .chat-status { font-size: 12px; color: #34C759; }
+  .chat-msgs { display: flex; flex-direction: column; gap: 12px; }
+  .msg {
+    max-width: 80%; padding: 12px 16px;
+    border-radius: 18px; font-size: 14px; line-height: 1.5;
+    animation: msgIn .5s ease both;
+  }
+  .msg.bot {
+    background: var(--accent-light); color: var(--text);
+    align-self: flex-start; border-bottom-left-radius: 6px;
+  }
+  .msg.user {
+    background: var(--accent); color: #fff;
+    align-self: flex-end; border-bottom-right-radius: 6px;
+  }
+  .msg:nth-child(1) { animation-delay: .2s; }
+  .msg:nth-child(2) { animation-delay: .6s; }
+  .msg:nth-child(3) { animation-delay: 1s; }
+  .msg:nth-child(4) { animation-delay: 1.4s; }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .floating-badge {
+    position: absolute; top: -14px; right: -14px;
+    background: var(--warm); color: #fff;
+    padding: 8px 16px; border-radius: 50px;
+    font-size: 13px; font-weight: 700;
+    box-shadow: 0 4px 16px rgba(255,107,53,0.35);
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  /* ── BENEFITS ── */
+  .benefits {
+    max-width: 1120px; margin: auto;
+    padding: 60px 24px 80px;
+  }
+  .section-label {
+    display: inline-block;
+    background: var(--warm-light); color: var(--warm);
+    padding: 6px 16px; border-radius: 50px;
+    font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 700; margin-bottom: 48px;
+  }
+  .benefits-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  .benefit-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    transition: all .3s;
+  }
+  .benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  .benefit-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 18px;
+  }
+  .benefit-card:nth-child(1) .benefit-icon { background: var(--accent-light); }
+  .benefit-card:nth-child(2) .benefit-icon { background: var(--warm-light); }
+  .benefit-card:nth-child(3) .benefit-icon { background: #E8FFE8; }
+  .benefit-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .benefit-card p { font-size: 14px; color: var(--text-muted); }
+
+  /* ── FORM SECTION ── */
+  .form-section {
+    max-width: 1120px; margin: auto;
+    padding: 0 24px 100px;
+  }
+  .form-wrapper {
+    background: linear-gradient(135deg, #1A1A2E 0%, #16213E 100%);
+    border-radius: 28px;
+    padding: 60px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+    align-items: center;
+    position: relative; overflow: hidden;
+  }
+  .form-wrapper::before {
+    content: '';
+    position: absolute; top: -100px; right: -100px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,132,255,0.15), transparent 70%);
+    border-radius: 50%;
+  }
+  .form-left { position: relative; z-index: 1; }
+  .form-left .section-label { background: rgba(255,255,255,0.1); color: #fff; }
+  .form-left h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3.5vw, 38px);
+    font-weight: 700; color: #fff; margin-bottom: 16px;
+  }
+  .form-left p { color: rgba(255,255,255,0.65); font-size: 16px; margin-bottom: 24px; }
+  .trust-items { display: flex; flex-direction: column; gap: 12px; }
+  .trust-item {
+    display: flex; align-items: center; gap: 10px;
+    color: rgba(255,255,255,0.8); font-size: 14px;
+  }
+  .trust-check {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(52,199,89,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: #34C759; font-size: 13px; flex-shrink: 0;
+  }
+
+  .form-right { position: relative; z-index: 1; }
+  .lead-form {
+    background: #fff; border-radius: 20px;
+    padding: 36px; box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  }
+  .lead-form h3 {
+    font-size: 20px; font-weight: 700; margin-bottom: 24px; text-align: center;
+  }
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--text-muted); margin-bottom: 6px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%; padding: 13px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; color: var(--text);
+    transition: border-color .2s;
+    background: #FAFAFA;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none; border-color: var(--accent);
+    background: #fff;
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  .form-submit {
+    width: 100%; padding: 16px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: all .3s;
+    margin-top: 8px;
+  }
+  .form-submit:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,132,255,0.3);
+  }
+  .form-note {
+    text-align: center; font-size: 12px;
+    color: var(--text-muted); margin-top: 12px;
+  }
+
+  /* Success state */
+  .form-success {
+    display: none; text-align: center; padding: 40px 20px;
+  }
+  .form-success.show { display: block; }
+  .form-success .check-circle {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #E8FFE8; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: #34C759;
+  }
+  .form-success h3 { font-size: 20px; margin-bottom: 8px; }
+  .form-success p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+  .form-success .btn-messenger {
+    display: inline-flex; font-size: 14px;
+    padding: 12px 24px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 40px 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted); font-size: 13px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero { grid-template-columns: 1fr; padding-top: 110px; gap: 40px; }
+    .hero-visual { order: -1; }
+    .benefits-grid { grid-template-columns: 1fr; }
+    .form-wrapper { grid-template-columns: 1fr; padding: 36px 24px; gap: 36px; }
+    .lead-form { padding: 28px 20px; }
+  }
+
+  /* ── Fade-in on scroll ── */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: all .6s ease;
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">Virtual Intensity</div>
+    <a href="#form" class="nav-cta">Оставить заявку</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <h1>Собирайте заявки<br>через <span>Messenger</span><br>на автопилоте</h1>
+    <p>Чат-бот в Facebook Messenger встретит клиента, задаст нужные вопросы и передаст вам готовый лид — 24/7, без выходных.</p>
+    <div class="hero-buttons">
+      <a href="https://m.me/VirtualIntensityhub" target="_blank" class="btn-messenger">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.42 3.15 7.2.16.15.26.37.27.6l.05 1.88c.02.62.67 1.03 1.24.78l2.1-.93c.17-.08.36-.1.55-.07.88.2 1.82.31 2.64.31 5.64 0 10-4.13 10-9.7S17.64 2 12 2zm5.95 7.57l-2.9 4.6c-.46.73-1.43.92-2.12.41l-2.3-1.73a.6.6 0 00-.72 0l-3.12 2.36c-.42.31-.96-.18-.69-.63l2.9-4.6c.46-.73 1.43-.92 2.12-.41l2.3 1.73a.6.6 0 00.72 0l3.12-2.36c.42-.31.96.18.69.63z"/></svg>
+        Написать в Messenger
+      </a>
+      <a href="#form" class="btn-scroll">Оставить заявку ↓</a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="floating-badge">🔥 Онлайн</div>
+    <div class="chat-header">
+      <div class="chat-avatar">V</div>
+      <div>
+        <div class="chat-name">Virtual Intensity Bot</div>
+        <div class="chat-status">● Онлайн</div>
+      </div>
+    </div>
+    <div class="chat-msgs">
+      <div class="msg bot">Привет! 👋 Чем могу помочь? Расскажите о вашем проекте.</div>
+      <div class="msg user">Хочу подключить бота для сбора заявок</div>
+      <div class="msg bot">Отлично! Оставьте номер — мы свяжемся и настроим бота за 24 часа 🚀</div>
+      <div class="msg user">+7 999 123-45-67</div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="benefits reveal">
+  <div class="section-label">Преимущества</div>
+  <h2 class="section-title">Почему чат-бот в Messenger?</h2>
+  <div class="benefits-grid">
+    <div class="benefit-card">
+      <div class="benefit-icon">💬</div>
+      <h3>98% открываемость</h3>
+      <p>Сообщения в Messenger читают почти все — в отличие от email, который часто попадает в спам.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">⚡</div>
+      <h3>Мгновенный ответ</h3>
+      <p>Бот отвечает за секунду, квалифицирует лид и передаёт вам горячую заявку.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">📈</div>
+      <h3>Рост конверсии ×3</h3>
+      <p>Интерактивный диалог конвертирует в 3 раза лучше, чем обычная форма на сайте.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FORM -->
+<section class="form-section reveal" id="form">
+  <div class="form-wrapper">
+    <div class="form-left">
+      <div class="section-label">Бесплатная консультация</div>
+      <h2>Настроим бота<br>под ваш бизнес</h2>
+      <p>Заполните форму — мы свяжемся, обсудим задачу и предложим решение.</p>
+      <div class="trust-items">
+        <div class="trust-item">
+          <div class="trust-check">✓</div>
+          Бесплатный аудит текущей воронки
+        </div>
+        <div class="trust-item">
+          <div class="trust-check">✓</div>
+          Запуск бота за 24 часа
+        </div>
+        <div class="trust-item">
+          <div class="trust-check">✓</div>
+          Интеграция с CRM и аналитикой
+        </div>
+        <div class="trust-item">
+          <div class="trust-check">✓</div>
+          Поддержка и доработки после запуска
+        </div>
+      </div>
+    </div>
+
+    <div class="form-right">
+      <div class="lead-form" id="leadForm">
+        <h3>Получить консультацию</h3>
+        <div class="form-group">
+          <label>Имя</label>
+          <input type="text" id="fname" placeholder="Как вас зовут?" required>
+        </div>
+        <div class="form-group">
+          <label>Телефон или Email</label>
+          <input type="text" id="contact" placeholder="+7 (___) ___-__-__ или email" required>
+        </div>
+        <div class="form-group">
+          <label>Ниша / Сфера бизнеса</label>
+          <select id="niche">
+            <option value="">Выберите...</option>
+            <option>Услуги</option>
+            <option>E-commerce / Интернет-магазин</option>
+            <option>Образование</option>
+            <option>Недвижимость</option>
+            <option>Медицина / Красота</option>
+            <option>Другое</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Комментарий (необязательно)</label>
+          <textarea id="comment" placeholder="Расскажите коротко о задаче..."></textarea>
+        </div>
+        <button class="form-submit" onclick="submitForm()">Отправить заявку</button>
+        <p class="form-note">Нажимая кнопку, вы соглашаетесь на обработку данных</p>
+      </div>
+
+      <div class="form-success" id="formSuccess">
+        <div class="check-circle">✓</div>
+        <h3>Заявка отправлена!</h3>
+        <p>Мы свяжемся с вами в ближайшее время.<br>А пока — напишите нам в Messenger:</p>
+        <a href="https://m.me/VirtualIntensityhub" target="_blank" class="btn-messenger">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.42 3.15 7.2.16.15.26.37.27.6l.05 1.88c.02.62.67 1.03 1.24.78l2.1-.93c.17-.08.36-.1.55-.07.88.2 1.82.31 2.64.31 5.64 0 10-4.13 10-9.7S17.64 2 12 2z"/></svg>
+          Написать в Messenger
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  © 2026 Virtual Intensity Hub. Все права защищены.
+</footer>
+
+<script>
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Reveal on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Form submit
+  function submitForm() {
+    const name = document.getElementById('fname').value.trim();
+    const contact = document.getElementById('contact').value.trim();
+    if (!name || !contact) {
+      alert('Пожалуйста, заполните имя и контакт.');
+      return;
+    }
+
+    // ── Здесь подключить отправку данных ──
+    // Пример: fetch('/api/leads', { method: 'POST', body: JSON.stringify({ name, contact, niche, comment }) })
+    // Или отправка в Google Sheets, Telegram, CRM и т.д.
+
+    console.log('Lead:', { name, contact,
+      niche: document.getElementById('niche').value,
+      comment: document.getElementById('comment').value
+    });
+
+    document.getElementById('leadForm').style.display = 'none';
+    document.getElementById('formSuccess').classList.add('show');
+  }
+</script>
+</body>
+</html>
