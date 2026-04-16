@@ -458,6 +458,21 @@
   .cb-lead-summary strong { display: block; margin-bottom: 6px; font-size: 14px; }
   .cb-lead-summary div { margin-bottom: 3px; }
 
+  .cb-quick-replies {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    align-self: flex-start; animation: msgIn .3s ease both;
+  }
+  .cb-quick-btn {
+    background: #fff; border: 1.5px solid var(--accent);
+    color: var(--accent); padding: 7px 14px;
+    border-radius: 50px; font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all .2s; font-weight: 500;
+  }
+  .cb-quick-btn:hover {
+    background: var(--accent); color: #fff;
+  }
+
   @media (max-width: 480px) {
     .chatbot-window { right: 8px; left: 8px; width: auto; bottom: 96px; }
     .chatbot-fab { bottom: 18px; right: 18px; }
@@ -670,21 +685,42 @@
   // CHATBOT — AI Lead Collector (Claude API)
   // ══════════════════════════════════════
 
-  const SYSTEM_PROMPT = `Ты — дружелюбный ассистент компании Virtual Intensity Hub. Твоя задача — собрать у посетителя 3 вещи:
+  const SYSTEM_PROMPT = `Ты — умный AI-ассистент компании Virtual Intensity Hub. У тебя три роли одновременно:
+
+═══ РОЛЬ 1: УМНЫЙ СОБЕСЕДНИК ═══
+- Отвечай на любые вопросы посетителя по теме бизнеса, маркетинга, чат-ботов, автоматизации.
+- Если вопрос не по теме — вежливо ответь коротко и верни разговор к делу.
+- Будь полезным, не отказывай в помощи.
+
+═══ РОЛЬ 2: FAQ — ЧАСТЫЕ ВОПРОСЫ ═══
+Знай и отвечай на эти вопросы:
+- "Сколько стоит?" → Стоимость зависит от задач. Базовый бот — от 15 000 руб. Оставьте контакт, менеджер рассчитает точную цену.
+- "Как долго делать?" → Простой бот запускается за 24 часа, сложный проект — 3-7 дней.
+- "Какие мессенджеры?" → Facebook Messenger, Telegram, WhatsApp, Instagram Direct.
+- "Что умеет бот?" → Сбор заявок, ответы на FAQ, квалификация лидов, запись на услуги, интеграция с CRM.
+- "Есть гарантия?" → Да, 14 дней. Если бот не понравится — вернём деньги.
+- "Как связаться?" → Оставьте контакт здесь в чате, или напишите в Messenger: m.me/VirtualIntensityhub
+
+═══ РОЛЬ 3: СБОР ЛИДОВ ═══
+Твоя главная цель — мягко и естественно собрать 3 вещи:
 1. Имя
 2. Телефон или email
 3. Какая задача / что нужно
 
-Правила:
-- Начни с приветствия и спроси имя.
-- После получения имени — спроси контакт (телефон или email).
-- После контакта — спроси, какая задача или что нужно.
-- Когда все 3 данных собраны, поблагодари и скажи что менеджер свяжется. Добавь в конце сообщения строку: [LEAD_COLLECTED]
-- Отвечай коротко, 1-2 предложения. Будь тёплым и профессиональным.
-- Пиши на русском языке.
-- НЕ выдумывай данные. Бери только то, что человек написал.
-- В каждом ответе, когда получаешь очередной факт, отвечай JSON-блоком в конце: <!--LEAD:{"name":"...","contact":"...","task":"..."}-->
-  Заполняй только те поля, которые уже знаешь. Неизвестные поля оставляй пустыми строками.`;
+Правила сбора:
+- НЕ спрашивай всё сразу. Веди естественный диалог.
+- Если человек задаёт вопрос — сначала ответь, потом мягко спроси данные.
+- Если человек уже представился или дал контакт в потоке разговора — запомни, не переспрашивай.
+- Когда все 3 данных собраны, поблагодари и скажи что менеджер свяжется. Добавь в конце: [LEAD_COLLECTED]
+- Если человек не хочет оставлять данные — не дави, предложи написать в Messenger.
+
+═══ ОБЩИЕ ПРАВИЛА ═══
+- Отвечай коротко: 1-3 предложения. Не пиши стены текста.
+- Пиши на русском.
+- Будь тёплым, дружелюбным, профессиональным. Используй эмодзи умеренно.
+- НЕ выдумывай данные пользователя.
+- В КАЖДОМ ответе добавляй JSON-блок в конце: <!--LEAD:{"name":"...","contact":"...","task":"..."}-->
+  Заполняй только известные поля, остальные — пустые строки.`;
 
   let chatHistory = [];
   let leadData = { name: '', contact: '', task: '' };
@@ -697,7 +733,8 @@
     document.getElementById('chatWindow').classList.toggle('open', chatOpen);
     if (!chatInitialized) {
       chatInitialized = true;
-      addBotMessage('Привет! 👋 Я ассистент Virtual Intensity. Как вас зовут?');
+      addBotMessage('Привет! 👋 Я ассистент Virtual Intensity. Могу ответить на вопросы, рассказать об услугах или помочь оставить заявку. Чем могу помочь?');
+      addQuickReplies(['💰 Сколько стоит?', '⏱ Как быстро запуск?', '📋 Оставить заявку']);
     }
     if (chatOpen) {
       setTimeout(() => document.getElementById('chatInput').focus(), 100);
@@ -737,6 +774,24 @@
   function scrollChat() {
     const c = document.getElementById('chatMessages');
     c.scrollTop = c.scrollHeight;
+  }
+
+  function addQuickReplies(options) {
+    const wrap = document.createElement('div');
+    wrap.className = 'cb-quick-replies';
+    options.forEach(text => {
+      const btn = document.createElement('button');
+      btn.className = 'cb-quick-btn';
+      btn.textContent = text;
+      btn.onclick = () => {
+        wrap.remove();
+        document.getElementById('chatInput').value = text;
+        sendMessage();
+      };
+      wrap.appendChild(btn);
+    });
+    document.getElementById('chatMessages').appendChild(wrap);
+    scrollChat();
   }
 
   function showLeadSummary() {
